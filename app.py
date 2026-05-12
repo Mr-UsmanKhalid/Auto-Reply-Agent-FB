@@ -84,5 +84,16 @@ def webhook():
 
     return "ok", 200
 
+# home page display
+# working 
+@app.route("/")
+def home():
+    return "Welcome to the Facebook Messenger Bot API. Use the /webhook endpoint to connect your bot."
+
+# favicon
+@app.route("/favicon.ico")
+def favicon():
+    return "", 204
+
 if __name__ == "__main__":
     app.run(debug=True)

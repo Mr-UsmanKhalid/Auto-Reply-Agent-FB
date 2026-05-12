@@ -1,3 +1,5 @@
+import os
+import json
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
@@ -8,10 +10,20 @@ def load_faq():
         "https://www.googleapis.com/auth/drive"
     ]
 
-    creds = ServiceAccountCredentials.from_json_keyfile_name(
-        "creds.json",
-        scope
-    )
+    # Load from env var (Vercel) or fall back to file (local)
+    creds_json = os.environ.get("GOOGLE_CREDS_JSON")
+
+    if creds_json:
+        creds_dict = json.loads(creds_json)
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(
+            creds_dict,
+            scope
+        )
+    else:
+        creds = ServiceAccountCredentials.from_json_keyfile_name(
+            "creds.json",
+            scope
+        )
 
     client = gspread.authorize(creds)
 

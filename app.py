@@ -3,6 +3,7 @@ import os
 from flask import Flask, request, jsonify
 from agent import get_reply
 from dotenv import load_dotenv
+from flask import send_from_directory
 
 load_dotenv()
 VERIFY_TOKEN = os.getenv("VERIFY_TOKEN")
@@ -93,7 +94,7 @@ def home():
 # favicon
 @app.route("/favicon.ico")
 def favicon():
-    return "", 204
+    return send_from_directory("assets", "favicon.png", mimetype="image/png")
 
 if __name__ == "__main__":
     app.run(debug=True)

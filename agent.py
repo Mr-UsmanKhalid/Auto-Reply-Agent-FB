@@ -11,30 +11,58 @@ llm = ChatGroq(
 faq_data = load_faq()
 
 
+# =========================
+# FAQ Matching
+# =========================
 def faq_reply(msg):
-    msg = msg.lower()
+
+    msg = msg.strip().lower()
 
     for k in faq_data:
-        if k in msg:
+
+        keyword = k.strip().lower()
+
+        # Exact match
+        if keyword == msg:
+            return faq_data[k]
+
+        # Partial match
+        if keyword in msg:
             return faq_data[k]
 
     return None
 
 
+# =========================
+# AI Reply
+# =========================
 def ai_reply(msg):
-    prompt = f"""
-You are a helpful Marketplace assistant.
-Reply short, polite, and NOT spammy.
 
-User: {msg}
+    prompt = f"""
+You are a helpful Facebook Marketplace assistant.
+
+Rules:
+- Reply short
+- Friendly tone
+- Human-like
+- NOT spammy
+- Avoid long paragraphs
+- Avoid excessive emojis
+
+User message:
+{msg}
 """
 
     res = llm.invoke(prompt)
 
-    return res.content
+    return res.content.strip()
 
 
+# =========================
+# Main Function
+# =========================
 def get_reply(msg):
+
     reply = faq_reply(msg)
 
     if reply:

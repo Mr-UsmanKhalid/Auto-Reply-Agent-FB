@@ -44,6 +44,24 @@ def send_message(recipient_id, text):
 
     print("STATUS:", response.status_code)
     print("RESPONSE:", response.text)
+    
+    
+def reply_comment(comment_id, text):
+    
+    # url = f"https://graph.facebook.com/v25.0/{comment_id}/comments"
+    
+    # url = f"https://graph.facebook.com/v21.0/${comment_id}/comments?message=${replyMessage}&access_token=${PAGE_ACCESS_TOKEN}"
+    url = f"https://graph.facebook.com/v25.0/{comment_id}/comments?access_token={PAGE_ACCESS_TOKEN}"
+
+    payload = {
+        "message": text,
+        "access_token": PAGE_ACCESS_TOKEN
+    }
+
+    response = requests.post(url, json=payload)
+
+    print("COMMENT STATUS:", response.status_code)
+    print("COMMENT RESPONSE:", response.text)
    
     
 @app.route("/webhook", methods=["GET"])
@@ -59,29 +77,36 @@ def verify():
 @app.route("/webhook", methods=["POST"])
 def webhook():
     data = request.json
-
-    print("FULL DATA:", data)
+    print("WEBHOOK DATA:", data)  # full raw data
 
     if "entry" in data:
         for entry in data["entry"]:
-            for msg in entry["messaging"]:
+            print("ENTRY KEYS:", entry.keys())  # see what keys exist
+            
+            if "messaging" in entry:
+                for msg in entry["messaging"]:
+                    sender_id = msg["sender"]["id"]
+                    if msg.get("message") and not msg["message"].get("is_echo"):
+                        user_msg = msg["message"].get("text")
+                        print("MESSAGE:", user_msg)
+                        if user_msg:
+                            reply = get_reply(user_msg)
+                            send_message(sender_id, reply)
 
-                print("MESSAGE OBJECT:", msg)
-
-                sender_id = msg["sender"]["id"]
-
-                if msg.get("message") and not msg["message"].get("is_echo"):
-
-                    user_msg = msg["message"].get("text")
-
-                    print("USER MESSAGE:", user_msg)
-
-                    if user_msg:
-                        reply = get_reply(user_msg)
-
-                        print("BOT REPLY:", reply)
-
-                        send_message(sender_id, reply)
+            if "changes" in entry:
+                for change in entry["changes"]:
+                    if change.get("field") == "feed":
+                        value = change.get("value", {})
+                        if value.get("item") == "comment" and value.get("verb") == "add":
+                                comment_text = value.get("message")
+                                sender_id = value.get("from", {}).get("id")
+                
+                                print("COMMENT:", comment_text)
+                                print("SENDER ID:", sender_id)
+                
+                                if comment_text and sender_id:
+                                        reply = get_reply(comment_text)
+                                        send_message(sender_id, reply)  # DM instead of comment reply
 
     return "ok", 200
 

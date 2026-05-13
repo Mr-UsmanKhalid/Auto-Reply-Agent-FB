@@ -121,5 +121,9 @@ def home():
 def favicon():
     return send_from_directory("assets", "favicon.png", mimetype="image/png")
 
+@app.route("/api")
+def api():
+    return "API is running"
+
 if __name__ == "__main__":
     app.run(debug=True)
